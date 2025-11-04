@@ -231,30 +231,42 @@ function renderPostForm(Post = null) {
 
     $("#actionTitle").text(create ? "Création" : "Modification");
     $("#content").append(`
-        <form class="form" id="PostForm">
+        <form class="form" id="postForm">
             <input type="hidden" name="Id" value="${Post.Id}"/>
 
             <label for="Title" class="form-label">Titre</label>
             <input class="form-control" name="Title" id="Title" required value="${Post.Title}" />
-
+            
             <label for="Text" class="form-label">Texte</label>
             <textarea class="form-control" name="Text" id="Text" rows="4" required>${Post.Text}</textarea>
 
             <label for="Category" class="form-label">Catégorie</label>
             <input class="form-control" name="Category" id="Category" required value="${Post.Category}" />
 
-            <label for="Image" class="form-label">Image (URL)</label>
-            <input class="form-control" name="Image" id="Image" placeholder="Lien vers une image" value="${Post.Image}" />
+  
+            <!-- nécessite le fichier javascript 'imageControl.js' -->
+            <label class="form-label">Avatar</label>
+            <div class="imageUploader" 
+                id="${Post.Id}" 
+                controlId="PhotoImageData"
+                imageSrc="${Post.Image}"
+                newImage="true"
+                waitingImage="Loading_icon.gif">
+            </div>
+
+            <span class="field-validation-valid text-danger" data-valmsg-for="PostImage" data-valmsg-replace="true"></span>
 
             <br>
             <input type="submit" value="Enregistrer" id="savePost" class="btn btn-primary">
             <input type="button" value="Annuler" id="cancel" class="btn btn-secondary">
         </form>
     `);
-
-    $('#PostForm').on("submit", async function (event) {
+    initImageUploaders();
+    initFormValidation(); 
+    
+    $('#postForm').on("submit", async function (event) {
         event.preventDefault();
-        let Post = getFormData($("#PostForm"));
+        let Post = getFormData($("#postForm"));
         showWaitingGif();
         let result = await Posts_API.Save(Post, create);
         if (result)

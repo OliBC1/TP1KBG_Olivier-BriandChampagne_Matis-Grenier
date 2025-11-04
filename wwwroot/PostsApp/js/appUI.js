@@ -1,0 +1,293 @@
+const periodicRefreshPeriod = 3;
+let contentScrollPosition = 0;
+let selectedCategory = "";
+let currentETag = "";
+let hold_Periodic_Refresh = false;
+
+Init_UI();
+
+function Init_UI() {
+    renderPosts();
+    $('#createPost').on("click", async function () {
+        saveContentScrollPosition();
+        renderCreatePostForm();
+    });
+    $('#abort').on("click", async function () {
+        renderPosts();
+    });
+    $('#aboutCmd').on("click", function () {
+        renderAbout();
+    });
+    start_Periodic_Refresh();
+}
+
+function start_Periodic_Refresh() {
+    setInterval(async () => {
+        if (!hold_Periodic_Refresh) {
+            await Posts_API.Head();
+            if (currentETag != Posts_API.Etag) {
+                currentETag = Posts_API.Etag;
+                saveContentScrollPosition();
+                renderPosts();
+            }
+        }
+    }, periodicRefreshPeriod * 1000);
+}
+
+function renderAbout() {
+    hold_Periodic_Refresh = true;
+    saveContentScrollPosition();
+    eraseContent();
+    $("#createPost").hide();
+    $("#dropdownMenu").hide();
+    $("#abort").show();
+    $("#actionTitle").text("À propos...");
+    $("#content").append(`
+        <div class="aboutContainer">
+            <h2>Gestionnaire de publications</h2>
+            <hr>
+            <p>Petite application de gestion de publications à titre de démonstration d'interface utilisateur monopage réactive.</p>
+            <p>Auteur: Nicolas Chourot</p>
+            <p>Collège Lionel-Groulx, automne 2023</p>
+        </div>
+    `);
+}
+
+function updateDropDownMenu(categories) {
+    let DDMenu = $("#DDMenu");
+    let selectClass = selectedCategory === "" ? "fa-check" : "fa-fw";
+    DDMenu.empty();
+    DDMenu.append(`
+        <div class="dropdown-item menuItemLayout" id="allCatCmd">
+            <i class="menuIcon fa ${selectClass} mx-2"></i> Toutes les catégories
+        </div>
+    `);
+    DDMenu.append(`<div class="dropdown-divider"></div>`);
+    categories.forEach(category => {
+        selectClass = selectedCategory === category ? "fa-check" : "fa-fw";
+        DDMenu.append(`
+            <div class="dropdown-item menuItemLayout category">
+                <i class="menuIcon fa ${selectClass} mx-2"></i> ${category}
+            </div>
+        `);
+    });
+    DDMenu.append(`<div class="dropdown-divider"></div>`);
+    DDMenu.append(`
+        <div class="dropdown-item menuItemLayout" id="aboutCmd">
+            <i class="menuIcon fa fa-info-circle mx-2"></i> À propos...
+        </div>
+    `);
+
+    $('#aboutCmd').on("click", renderAbout);
+    $('#allCatCmd').on("click", function () {
+        selectedCategory = "";
+        renderPosts();
+    });
+    $('.category').on("click", function () {
+        selectedCategory = $(this).text().trim();
+        renderPosts();
+    });
+}
+
+function compileCategories(posts) {
+    let categories = [];
+    if (posts) {
+        posts.forEach(post => {
+            if (!categories.includes(post.Category))
+                categories.push(post.Category);
+        });
+        updateDropDownMenu(categories);
+    }
+}
+
+async function renderPosts() {
+    hold_Periodic_Refresh = false;
+    showWaitingGif();
+    $("#actionTitle").text("Liste des publications");
+    $("#createPost").show();
+    $("#dropdownMenu").show();
+    $("#abort").hide();
+    let Posts = await Posts_API.Get();
+    currentETag = Posts_API.Etag;
+    compileCategories(Posts);
+    eraseContent();
+
+    if (Posts !== null) {
+        Posts.forEach(Post => {
+            if (selectedCategory === "" || selectedCategory === Post.Category)
+                $("#content").append(renderPost(Post));
+        });
+        restoreContentScrollPosition();
+
+        $(".editCmd").on("click", function () {
+            saveContentScrollPosition();
+            renderEditPostForm($(this).attr("editPostId"));
+        });
+        $(".deleteCmd").on("click", function () {
+            saveContentScrollPosition();
+            renderDeletePostForm($(this).attr("deletePostId"));
+        });
+    } else {
+        renderError();
+    }
+}
+
+function showWaitingGif() {
+    $("#content").empty().append(`<div class='waitingGifcontainer'><img class='waitingGif' src='Loading_icon.gif' /></div>`);
+}
+
+function eraseContent() { $("#content").empty(); }
+function saveContentScrollPosition() { contentScrollPosition = $("#content")[0].scrollTop; }
+function restoreContentScrollPosition() { $("#content")[0].scrollTop = contentScrollPosition; }
+
+function renderError(message = "") {
+    message = message == "" ? Posts_API.currentHttpError : message;
+    eraseContent();
+    $("#content").append(`<div class="errorContainer">${message}</div>`);
+}
+
+function renderCreatePostForm() { renderPostForm(); }
+
+async function renderEditPostForm(id) {
+    showWaitingGif();
+    let Post = await Posts_API.Get(id);
+    if (Post !== null)
+        renderPostForm(Post);
+    else
+        renderError("Publication introuvable!");
+}
+
+async function renderDeletePostForm(id) {
+    showWaitingGif();
+    $("#createPost").hide();
+    $("#dropdownMenu").hide();
+    $("#abort").show();
+    $("#actionTitle").text("Retrait");
+    let Post = await Posts_API.Get(id);
+    eraseContent();
+
+    if (Post !== null) {
+        $("#content").append(`
+            <div class="PostdeleteForm">
+                <h4>Effacer la publication suivante?</h4>
+                <br>
+                <div class="PostRow" Post_id="${Post.Id}">
+                    <div class="PostContainer noselect">
+                        <div class="PostLayout">
+                            <img class="PostImageSmall" src="${Post.Image}" alt="image">
+                            <span class="PostTitle">${Post.Title}</span>
+                        </div>
+                        <span class="PostCategory">${Post.Category}</span>
+                    </div>
+                </div>   
+                <br>
+                <input type="button" value="Effacer" id="deletePost" class="btn btn-primary">
+                <input type="button" value="Annuler" id="cancel" class="btn btn-secondary">
+            </div>
+        `);
+        $('#deletePost').on("click", async function () {
+            showWaitingGif();
+            let result = await Posts_API.Delete(Post.Id);
+            if (result)
+                renderPosts();
+            else
+                renderError();
+        });
+        $('#cancel').on("click", renderPosts);
+    } else {
+        renderError("Publication introuvable!");
+    }
+}
+
+function getFormData($form) {
+    const removeTag = new RegExp("(<[a-zA-Z0-9]+>)|(</[a-zA-Z0-9]+>)", "g");
+    let jsonObject = {};
+    $.each($form.serializeArray(), (index, control) => {
+        jsonObject[control.name] = control.value.replace(removeTag, "");
+    });
+    return jsonObject;
+}
+
+function newPost() {
+    return {
+        Id: "",
+        Title: "",
+        Text: "",
+        Category: "",
+        Image: "",
+        Creation: Date.now()
+    };
+}
+
+function renderPostForm(Post = null) {
+    hold_Periodic_Refresh = true;
+    $("#createPost").hide();
+    $("#dropdownMenu").hide();
+    $("#abort").show();
+    eraseContent();
+
+    let create = Post == null;
+    if (create) Post = newPost();
+
+    $("#actionTitle").text(create ? "Création" : "Modification");
+    $("#content").append(`
+        <form class="form" id="PostForm">
+            <input type="hidden" name="Id" value="${Post.Id}"/>
+
+            <label for="Title" class="form-label">Titre</label>
+            <input class="form-control" name="Title" id="Title" required value="${Post.Title}" />
+
+            <label for="Text" class="form-label">Texte</label>
+            <textarea class="form-control" name="Text" id="Text" rows="4" required>${Post.Text}</textarea>
+
+            <label for="Category" class="form-label">Catégorie</label>
+            <input class="form-control" name="Category" id="Category" required value="${Post.Category}" />
+
+            <label for="Image" class="form-label">Image (URL)</label>
+            <input class="form-control" name="Image" id="Image" placeholder="Lien vers une image" value="${Post.Image}" />
+
+            <br>
+            <input type="submit" value="Enregistrer" id="savePost" class="btn btn-primary">
+            <input type="button" value="Annuler" id="cancel" class="btn btn-secondary">
+        </form>
+    `);
+
+    $('#PostForm').on("submit", async function (event) {
+        event.preventDefault();
+        let Post = getFormData($("#PostForm"));
+        showWaitingGif();
+        let result = await Posts_API.Save(Post, create);
+        if (result)
+            renderPosts();
+        else {
+            if (Posts_API.currentStatus == 409)
+                renderError("Erreur: Conflit d'identifiant ou de titre...");
+            else
+                renderError();
+        }
+    });
+    $('#cancel').on("click", renderPosts);
+}
+
+function renderPost(Post) {
+    let date = new Date(Post.Creation).toLocaleString();
+    return $(`
+        <div class="PostRow" Post_id="${Post.Id}">
+            <div class="PostContainer noselect">
+                <div class="PostLayout">
+                    <img class="PostImageSmall" src="${Post.Image}" alt="image">
+                    <div class="PostContent">
+                        <span class="PostTitle">${Post.Title}</span>
+                        <p class="PostText">${Post.Text}</p>
+                        <span class="PostCategory">${Post.Category}</span>
+                        <span class="PostDate">${date}</span>
+                    </div>
+                </div>
+                <div class="PostCommandPanel">
+                    <span class="editCmd cmdIcon fa fa-pencil" editPostId="${Post.Id}" title="Modifier ${Post.Title}"></span>
+                    <span class="deleteCmd cmdIcon fa fa-trash" deletePostId="${Post.Id}" title="Effacer ${Post.Title}"></span>
+                </div>
+            </div>
+        </div>
+    `);
+}

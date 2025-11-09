@@ -1,56 +1,107 @@
-
 .PostRow {
     padding: 8px;
-    padding-bottom: 0px;
     scroll-snap-align: start;
 }
 
 .PostContainer {
-    display: grid;
-    grid-template-columns: 4fr 1fr;
-    align-items: top;
-    background-color: #eee;
+    background-color: #fff;
+    border: 2px solid black;
     border-radius: 6px;
+    overflow: hidden;
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: #222;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
 }
 
 .PostContainer .cmdIcon {
     display: none;
 }
 
+.PostContainer:hover {
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
 .PostContainer:hover .cmdIcon {
     display: block;
 }
 
-.PostLayout {
-    display: grid;
-    grid-template-columns: 1fr;
-    padding: 10px;
-    gap: 8px;
-    align-items: center;
-}
-
-.Post {
-    display: grid;
-    grid-template-columns: 30px auto;
+.PostHeader {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 14px 4px 14px;
 }
 
 .PostTitle {
-    font-size: 1.1rem;
+    font-size: 1.5rem;
     font-weight: bold;
-    color: black;
+    color: #000;
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .PostCategory {
     color: dodgerblue !important;
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
-.PostCommandPanel {
+.PostTitleLine {
     display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2px;
+    min-height: 40px; /* same height as icons */
+}
+
+.PostHeaderCmds {
+    display: flex;
+    align-items: center;
     gap: 8px;
+    margin-left: 8px;
+}
+
+.PostImageUI {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-bottom: 1px solid #ddd;
+}
+
+.PostLayout {
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    gap: 6px;
+}
+
+.PostText {
+    color: #444;
+    font-size: 0.95rem;
+    line-height: 1.4em;
+}
+
+.PostDate {
+    font-size: 0.8rem;
+    color: #777;
+    padding: 6px 14px 0 14px;
 }
 
 .PostdeleteForm {
     margin: 20px;
+}
+
+
+.hideExtra { 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+} 
+ 
+.showExtra { 
+    height: auto; 
 }

@@ -47,8 +47,8 @@ function renderAbout() {
             <h2>Gestionnaire de publications</h2>
             <hr>
             <p>Petite application de gestion de publications à titre de démonstration d'interface utilisateur monopage réactive.</p>
-            <p>Auteur: Nicolas Chourot</p>
-            <p>Collège Lionel-Groulx, automne 2023</p>
+            <p>Auteur: Olivier Briand-Champagne & Matis Grenier</p>
+            <p>Collège Lionel-Groulx, automne 2025</p>
         </div>
     `);
 }
@@ -167,19 +167,34 @@ async function renderDeletePostForm(id) {
     eraseContent();
 
     if (Post !== null) {
+        let dateString = new Date(Post.Creation).toLocaleString();
         $("#content").append(`
             <div class="PostdeleteForm">
                 <h4>Effacer la publication suivante?</h4>
                 <br>
                 <div class="PostRow" Post_id="${Post.Id}">
                     <div class="PostContainer noselect">
-                        <div class="PostLayout">
-                            <img class="PostImageSmall" src="${Post.Image}" alt="image">
-                            <span class="PostTitle">${Post.Title}</span>
+                
+                        <!-- Header (Category + Title + Commands) -->
+                        <div class="PostHeader">
+                            <span class="PostCategory">${Post.Category}</span>
+                            <div class="PostTitleLine">
+                                <span class="PostTitle">${Post.Title}</span>
+                            </div>
                         </div>
-                        <span class="PostCategory">${Post.Category}</span>
+                
+                        <!-- Image -->
+                        <div class="PostImageUI" style="background-image: url('${Post.Image}');"></div>
+                
+                        <!-- Date -->
+                        <div class="PostDate">${dateString}</div>
+                
+                        <!-- Text -->
+                        <div class="PostLayout">
+                            <p class="PostText">${Post.Text}</p>
+                        </div>
                     </div>
-                </div>   
+                </div>
                 <br>
                 <input type="button" value="Effacer" id="deletePost" class="btn btn-primary">
                 <input type="button" value="Annuler" id="cancel" class="btn btn-secondary">
@@ -215,7 +230,7 @@ function newPost() {
         Text: "",
         Category: "",
         Image: "",
-        Creation: Date.now()
+        Creation: Local_to_UTC(Date.now())
     };
 }
 
@@ -233,6 +248,8 @@ function renderPostForm(Post = null) {
     $("#content").append(`
         <form class="form" id="postForm">
             <input type="hidden" name="Id" value="${Post.Id}"/>
+            <input type="hidden" name="Creation" value="${Post.Creation}">
+
 
             <label for="Title" class="form-label">Titre</label>
             <input class="form-control" name="Title" id="Title" required value="${Post.Title}" />
@@ -245,10 +262,10 @@ function renderPostForm(Post = null) {
 
   
             <!-- nécessite le fichier javascript 'imageControl.js' -->
-            <label class="form-label">Avatar</label>
+            <label class="form-label">Image</label>
             <div class="imageUploader" 
                 id="${Post.Id}" 
-                controlId="PhotoImageData"
+                controlId="Image"
                 imageSrc="${Post.Image}"
                 newImage="true"
                 waitingImage="Loading_icon.gif">
@@ -268,6 +285,7 @@ function renderPostForm(Post = null) {
         event.preventDefault();
         let Post = getFormData($("#postForm"));
         showWaitingGif();
+        console.log(Post);
         let result = await Posts_API.Save(Post, create);
         if (result)
             renderPosts();
@@ -282,22 +300,33 @@ function renderPostForm(Post = null) {
 }
 
 function renderPost(Post) {
-    let date = new Date(Post.Creation).toLocaleString();
+    const localDate = UTC_To_Local(Post.Creation);
+    const dateString = convertToFrenchDate(localDate);
     return $(`
         <div class="PostRow" Post_id="${Post.Id}">
             <div class="PostContainer noselect">
-                <div class="PostLayout">
-                    <img class="PostImageSmall" src="${Post.Image}" alt="image">
-                    <div class="PostContent">
+
+                <!-- Header (Category + Title + Commands) -->
+                <div class="PostHeader">
+                    <span class="PostCategory">${Post.Category}</span>
+                    <div class="PostTitleLine">
                         <span class="PostTitle">${Post.Title}</span>
-                        <p class="PostText">${Post.Text}</p>
-                        <span class="PostCategory">${Post.Category}</span>
-                        <span class="PostDate">${date}</span>
+                        <div class="PostHeaderCmds">
+                            <span class="editCmd cmdIcon fa fa-pencil" editPostId="${Post.Id}" title="Modifier ${Post.Title}"></span>
+                            <span class="deleteCmd cmdIcon fa fa-trash" deletePostId="${Post.Id}" title="Effacer ${Post.Title}"></span>
+                        </div>
                     </div>
                 </div>
-                <div class="PostCommandPanel">
-                    <span class="editCmd cmdIcon fa fa-pencil" editPostId="${Post.Id}" title="Modifier ${Post.Title}"></span>
-                    <span class="deleteCmd cmdIcon fa fa-trash" deletePostId="${Post.Id}" title="Effacer ${Post.Title}"></span>
+
+                <!-- Image -->
+                <div class="PostImageUI" style="background-image: url('${Post.Image}');"></div>
+
+                <!-- Date -->
+                <div class="PostDate">${dateString}</div>
+
+                <!-- Text -->
+                <div class="PostLayout">
+                    <p class="PostText">${Post.Text}</p>
                 </div>
             </div>
         </div>

@@ -40,6 +40,7 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    max-width:70%;
 }
 
 .PostCategory {
@@ -73,17 +74,24 @@
     border-bottom: 1px solid #ddd;
 }
 
-.PostLayout {
-    display: flex;
-    flex-direction: column;
+.PostText {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+    margin: 0;
     padding: 12px;
     gap: 6px;
 }
 
-.PostText {
-    color: #444;
-    font-size: 0.95rem;
-    line-height: 1.4em;
+.PostTextWrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+}
+
+.PostTextWrapper .cmdIcon{
+    display: block;
 }
 
 .PostDate {
@@ -96,10 +104,10 @@
     margin: 20px;
 }
 
-
 .hideExtra { 
     overflow: hidden; 
     text-overflow: ellipsis; 
+    max-height: 4em;
 } 
  
 .showExtra { 

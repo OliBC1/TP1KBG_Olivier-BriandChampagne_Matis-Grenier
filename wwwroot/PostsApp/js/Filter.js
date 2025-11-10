@@ -5,40 +5,42 @@ texte des nouvelles (toutes les occurrences devront être en couleur de fond jau
 filtrer les nouvelles par catégories.
 */
 
+let showKeywords = false;
+let minKeywordLenth = 2;
+
 //////////// Code Fourni
 function highlight(text, elem) { 
-    text = text.trim(); 
+    text = text.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); 
     if (text.length >= minKeywordLenth) { 
-        var innerHTML = elem.innerHTML; 
+        let innerHTML = elem.innerHTML; 
         let startIndex = 0; 
- 
+
         while (startIndex < innerHTML.length) { 
-            var normalizedHtml = 
-innerHTML.toLocaleLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); 
-            var index = normalizedHtml.indexOf(text, startIndex); 
-            let highLightedText = ""; 
-            if (index >= startIndex) { 
-                highLightedText = "<span class='highlight'>" + innerHTML.substring(index, 
-index + text.length) + "</span>"; 
-                innerHTML = innerHTML.substring(0, index) + highLightedText + 
-innerHTML.substring(index + text.length); 
-                startIndex = index + highLightedText.length + 1; 
-            } else 
-                startIndex = innerHTML.length + 1; 
+            const normalizedHtml = innerHTML.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            const index = normalizedHtml.indexOf(text, startIndex);
+            if (index === -1) break;
+
+            const highlighted = `<span class="highlight">${innerHTML.substring(index, index + text.length)}</span>`;
+            innerHTML = innerHTML.substring(0, index) + highlighted + innerHTML.substring(index + text.length);
+            startIndex = index + highlighted.length;
         } 
         elem.innerHTML = innerHTML; 
     } 
-} 
+}
+
 function highlightKeywords() { 
     if (showKeywords) { 
+        removeHighlights(); //not the most optimised, because it might remove a kw even if its going to add it again after
+
         let keywords = $("#searchKeys").val().split(' '); 
+        console.log(keywords);
         if (keywords.length > 0) { 
             keywords.forEach(key => { 
-                let titles = document.getElementsByClassName('postTitle'); 
+                let titles = document.getElementsByClassName('PostTitle'); 
                 Array.from(titles).forEach(title => { 
                     highlight(key, title); 
                 }) 
-                let texts = document.getElementsByClassName('postText'); 
+                let texts = document.getElementsByClassName('PostText'); 
                 Array.from(texts).forEach(text => { 
                     highlight(key, text); 
                 }) 
@@ -47,3 +49,11 @@ function highlightKeywords() {
     } 
 }
 //////////// Fin Code Fourni
+
+function removeHighlights() {
+    document.querySelectorAll('.highlight').forEach(span => {
+        const parent = span.parentNode;
+        parent.replaceChild(document.createTextNode(span.textContent), span);
+        parent.normalize();
+    });
+}

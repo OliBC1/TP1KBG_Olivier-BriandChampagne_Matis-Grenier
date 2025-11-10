@@ -42,12 +42,34 @@ body {
     border-radius: 9px;
     background-color: white;
     display: grid;
-    grid-template-columns: 50px auto 50px 30px;
+    grid-template-columns: 50px auto 30px 30px 30px;
     width: 100%;
     height: 60px;
     align-items: center;
     padding: 8px;
+    gap:8px;
 }
+
+#header .cmdIcon {
+    width:24px;
+    height: 24px;
+}
+
+#searchKeys {
+    width: 100%;
+    display: none;
+    transition: all 0.3s ease;
+}
+
+#searchKeys.show {
+    display: inline-block;
+    justify-self: end;
+}
+
+.highlight {
+    background-color: yellow;
+}
+
 
 #content {
     border: 1px solid #ccc;
@@ -175,4 +197,8 @@ label {
 
 .selected {
     background-color: #ccc;
+}
+
+.highlight {
+    background-color: yellow;
 }

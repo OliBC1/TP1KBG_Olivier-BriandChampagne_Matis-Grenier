@@ -18,6 +18,32 @@ function Init_UI() {
     $('#aboutCmd').on("click", function () {
         renderAbout();
     });
+    
+    $('#search').on("click", function () {
+        const searchInput = $('#searchKeys');
+        const header = $('#header');
+
+        searchInput.toggleClass('show');
+        showKeywords = searchInput.hasClass('show'); // enable/disable highlighting
+
+        if (showKeywords) {
+            // Expand the grid when showing the search field
+            header.css('grid-template-columns', '50px auto auto 30px 30px 30px');
+            searchInput.focus();
+        } else {
+            // Restore the grid and clear highlights when hiding the search field
+            header.css('grid-template-columns', '50px auto 30px 30px 30px');
+            searchInput.val('');
+            renderPosts(); // re-render to remove old highlights
+        }
+    });
+    $('#searchKeys').on("input", function () {
+        if ($(this).val().trim().length > 0)
+            highlightKeywords();
+        else
+            removeHighlights();
+    });
+    
     start_Periodic_Refresh();
 }
 
@@ -384,8 +410,8 @@ function renderPost(Post) {
             <div class="PostTextWrapper">
                 <p class="PostText hideExtra" id="postText_${Post.Id}">${Post.Text}</p>
                 <div class="PostExpandPanel" id="expandPanel_${Post.Id}">
-                    <span class="expandCmd cmdIcon fa fa-chevron-down" title="Agrandir le texte" toggleId="${Post.Id}"></span>
-                    <span class="collapseCmd cmdIcon fa fa-chevron-up" title="Réduire le texte" toggleId="${Post.Id}" style="display:none;"></span>
+                    <span class="expandCmd cmdIcon fa fa-angle-double-down" title="Agrandir le texte" toggleId="${Post.Id}"></span>
+                    <span class="collapseCmd cmdIcon fa fa-angle-double-up" title="Réduire le texte" toggleId="${Post.Id}" style="display:none;"></span>
                 </div>
             </div>
         </div>

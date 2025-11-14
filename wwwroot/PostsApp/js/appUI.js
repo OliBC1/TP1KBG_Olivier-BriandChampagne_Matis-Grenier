@@ -89,6 +89,7 @@ function renderAbout() {
     eraseContent();
     $("#createPost").hide();
     $("#dropdownMenu").hide();
+    $("#search").hide();
     $("#abort").show();
     $("#actionTitle").text("À propos...");
     $("#content").append(`
@@ -154,6 +155,7 @@ async function renderPosts(desc = true) {
     showWaitingGif();
     $("#actionTitle").text("Liste des publications");
     $("#createPost").show();
+    $("#search").show();
     $("#dropdownMenu").show();
     $("#abort").hide();
     let Posts = await Posts_API.Get();
@@ -233,6 +235,7 @@ async function renderDeletePostForm(id) {
     showWaitingGif();
     $("#createPost").hide();
     $("#dropdownMenu").hide();
+    $("#search").hide();
     $("#abort").show();
     $("#actionTitle").text("Retrait");
     let Post = await Posts_API.Get(id);
@@ -323,6 +326,7 @@ function renderPostForm(Post = null) {
     hold_Periodic_Refresh = true;
     $("#createPost").hide();
     $("#dropdownMenu").hide();
+    $("#search").hide();
     $("#abort").show();
     eraseContent();
 

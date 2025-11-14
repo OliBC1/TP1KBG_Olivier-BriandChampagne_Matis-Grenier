@@ -3,28 +3,12 @@ let contentScrollPosition = 0;
 let selectedCategory = "";
 let currentETag = "";
 let hold_Periodic_Refresh = false;
-
-function filterPostsByHighlight() {
-    const searchTerm = $("#searchKeys").val().trim();
-    const filteringActive =
-        showKeywords &&
-        searchTerm.length >= minKeywordLenth;
-
-    if (!filteringActive) return;  // do nothing
-
-    // Hide posts without highlight
-    $(".PostRow").each(function () {
-        if ($(this).find(".highlight").length === 0) {
-            $(this).hide();
-        } else {
-            $(this).show();
-        }
-    });
-}
+let pageManagerPosts = null;
 
 Init_UI();
 
 function Init_UI() {
+    
     renderPosts();
     $('#createPost').on("click", async function () {
         saveContentScrollPosition();
@@ -79,6 +63,24 @@ function start_Periodic_Refresh() {
             }
         }
     }, periodicRefreshPeriod * 1000);
+}
+
+function filterPostsByHighlight() {
+    const searchTerm = $("#searchKeys").val().trim();
+    const filteringActive =
+        showKeywords &&
+        searchTerm.length >= minKeywordLenth;
+
+    if (!filteringActive) return;  // do nothing
+
+    // Hide posts without highlight
+    $(".PostRow").each(function () {
+        if ($(this).find(".highlight").length === 0) {
+            $(this).hide();
+        } else {
+            $(this).show();
+        }
+    });
 }
 
 function renderAbout() {

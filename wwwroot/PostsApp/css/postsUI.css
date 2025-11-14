@@ -1,6 +1,6 @@
 .PostRow {
     padding: 8px;
-    scroll-snap-align: start;
+    width: 100%;
 }
 
 .PostContainer {

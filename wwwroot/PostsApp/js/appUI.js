@@ -37,13 +37,14 @@ function Init_UI() {
             renderPosts(); // re-render to remove old highlights
         }
     });
+    
     $('#searchKeys').on("input", function () {
         if ($(this).val().trim().length > 0)
             highlightKeywords();
         else
             removeHighlights();
     });
-    
+
     start_Periodic_Refresh();
 }
 

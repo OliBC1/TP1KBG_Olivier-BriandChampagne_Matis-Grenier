@@ -4,6 +4,24 @@ let selectedCategory = "";
 let currentETag = "";
 let hold_Periodic_Refresh = false;
 
+function filterPostsByHighlight() {
+    const searchTerm = $("#searchKeys").val().trim();
+    const filteringActive =
+        showKeywords &&
+        searchTerm.length >= minKeywordLenth;
+
+    if (!filteringActive) return;  // do nothing
+
+    // Hide posts without highlight
+    $(".PostRow").each(function () {
+        if ($(this).find(".highlight").length === 0) {
+            $(this).hide();
+        } else {
+            $(this).show();
+        }
+    });
+}
+
 Init_UI();
 
 function Init_UI() {
@@ -41,8 +59,10 @@ function Init_UI() {
     $('#searchKeys').on("input", function () {
         if ($(this).val().trim().length > 0)
             highlightKeywords();
-        else
+        else {
             removeHighlights();
+            renderPosts();
+        }
     });
 
     start_Periodic_Refresh();
@@ -127,7 +147,7 @@ function compileCategories(posts) {
     }
 }
 
-async function renderPosts( desc = true) {
+async function renderPosts(desc = true) {
     hold_Periodic_Refresh = false;
     showWaitingGif();
     $("#actionTitle").text("Liste des publications");
@@ -147,10 +167,12 @@ async function renderPosts( desc = true) {
                 return new Date(a.Creation) - new Date(b.Creation); // oldest first
         });
 
-        Posts.forEach(Post => {
-            if (selectedCategory === "" || selectedCategory === Post.Category)
-                $("#content").append(renderPost(Post));
-        });
+        Posts.forEach(Post => 
+            { 
+                if (selectedCategory === "" || selectedCategory === Post.Category) 
+                    $("#content").append(renderPost(Post)); 
+            }); 
+
         restoreContentScrollPosition();
 
         $(".editCmd").on("click", function () {
@@ -178,6 +200,7 @@ async function renderPosts( desc = true) {
         renderError();
     }
 }
+
 
 function showWaitingGif() {
     $("#content").empty().append(`<div class='waitingGifcontainer'><img class='waitingGif' src='Loading_icon.gif' /></div>`);

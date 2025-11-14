@@ -45,7 +45,8 @@ function highlightKeywords() {
                     highlight(key, text); 
                 }) 
             }) 
-        } 
+        }
+        filterPostsByHighlight();
     } 
 }
 //////////// Fin Code Fourni
